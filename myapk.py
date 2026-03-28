@@ -364,5 +364,14 @@ if __name__ == "__main__":
                 first_user.is_admin = True
                 db.session.commit()
                 print(f"Made user '{first_user.username}' an admin.")
-    app.run(debug=True)
+    if __name__ == "__main__":
+
+        os.makedirs("uploads", exist_ok=True)
+
+        with app.app_context():
+            db.create_all()
+        # your migration code stays same
+
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
 
