@@ -4,3 +4,4 @@ Flask-Login==0.6.3
 Flask-WTF==1.1.1
 Werkzeug==2.3.7
 stripe==15.0.0
+gunicorn
