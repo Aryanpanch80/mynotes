@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Notes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            width: min(100%, 520px);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin: 0 auto;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .nav h2 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #4a5568;
+        }
+        .nav .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .nav a:hover {
+            color: #5a67d8;
+        }
+        .flash-message {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .flash-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        .flash-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+        input[type="text"], input[type="file"], select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        input[type="text"]:focus, input[type="file"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+        .ai-suggestion {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        .ai-button {
+            background: linear-gradient(45deg, #9f7aea, #805ad5);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+        .ai-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(159, 122, 234, 0.3);
+        }
+        button[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .back-link:hover {
+            color: #5a67d8;
+            transform: translateX(-5px);
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+            h2 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <h2>📤 Upload Notes</h2>
+            <div class="user-info">
+                <span>{{ current_user.username }}</span>
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('admin_panel') }}">Admin Panel</a>
+                {% endif %}
+                <a href="{{ url_for('index') }}">← Back to Notes</a>
+            </div>
+        </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ 'success' if category == 'success' else 'error' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" enctype="multipart/form-data" id="uploadForm">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label for="subject">{{ form.subject.label }}</label>
+                <div style="display: flex; align-items: center;">
+                    {{ form.subject(class="form-control") }}
+                    <button type="button" class="ai-button" onclick="getAISuggestion()">🤖 AI Suggest</button>
+                </div>
+                <div id="aiSuggestion" class="ai-suggestion"></div>
+                {% if form.subject.errors %}
+                    <div class="error">{{ form.subject.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="semester">{{ form.semester.label }}</label>
+                {{ form.semester(class="form-control") }}
+                {% if form.semester.errors %}
+                    <div class="error">{{ form.semester.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="category">{{ form.category.label }}</label>
+                {{ form.category(class="form-control") }}
+                {% if form.category.errors %}
+                    <div class="error">{{ form.category.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="file">{{ form.file.label }}</label>
+                {{ form.file(class="form-control") }}
+                {% if form.file.errors %}
+                    <div class="error">{{ form.file.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                {{ form.is_global() }}
+                <label for="is_global">{{ form.is_global.label.text }}</label>
+            </div>
+
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+    </div>
+
+    <script>
+        async function getAISuggestion() {
+            const subjectInput = document.getElementById('subject');
+            const text = subjectInput.value.trim();
+            if (!text) {
+                alert('Please enter some text in the subject field first.');
+                return;
+            }
+
+            const suggestionDiv = document.getElementById('aiSuggestion');
+            suggestionDiv.style.display = 'block';
+            suggestionDiv.textContent = 'Generating suggestion...';
+
+            try {
+                const response = await fetch('/ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({ text: text })
+                });
+                const data = await response.json();
+                suggestionDiv.textContent = data.result;
+            } catch (error) {
+                suggestionDiv.textContent = 'Error generating suggestion. Please try again.';
+            }
+        }
+    </script>
+</body>
+</html>

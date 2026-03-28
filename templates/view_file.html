@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View File - {{ filename }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .nav h1 {
+            margin: 0;
+            font-size: 1.8em;
+            color: #4a5568;
+        }
+        .nav .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .nav a:hover {
+            color: #5a67d8;
+        }
+        .file-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .file-info h2 {
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        .file-info p {
+            color: #718096;
+            margin: 5px 0;
+        }
+        .content {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 600px;
+            overflow-y: auto;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .nav {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            .actions {
+                flex-direction: column;
+            }
+            .btn {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <h1>📄 File Viewer</h1>
+            <div class="user-info">
+                <span>{{ current_user.username }}</span>
+                <a href="{{ url_for('index') }}">← Back to Notes</a>
+            </div>
+        </nav>
+
+        <div class="file-info">
+            <h2>{{ filename }}</h2>
+            <p><strong>Subject:</strong> {{ note.subject }}</p>
+            <p><strong>Semester:</strong> {{ note.semester }}</p>
+        </div>
+
+        <!-- Rating Section -->
+        <div class="rating-section" style="background: rgba(255,255,255,0.9); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <h3 style="margin-bottom: 15px; color: #4a5568;">Rate this Note</h3>
+            
+            <div class="rating-display" style="margin-bottom: 15px;">
+                <span class="stars" style="font-size: 1.5em;">
+                    {% for i in range(1, 6) %}
+                        {% if avg_rating >= i %}
+                            ⭐
+                        {% elif avg_rating >= i - 0.5 %}
+                            ⭐
+                        {% else %}
+                            ☆
+                        {% endif %}
+                    {% endfor %}
+                </span>
+                <span class="rating-text" style="margin-left: 15px; font-size: 1.1em; color: #666;">
+                    {{ "%.1f"|format(avg_rating) }} out of 5 stars ({{ rating_count }} rating{{ "s" if rating_count != 1 else "" }})
+                </span>
+            </div>
+            
+            <form method="POST" action="{{ url_for('rate_note', note_id=note.id) }}">
+                <div class="rating-input" style="display: flex; align-items: center; gap: 10px;">
+                    <label style="font-weight: 600; color: #4a5568;">Your Rating:</label>
+                    <select name="rating" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px;">
+                        <option value="">Select rating</option>
+                        {% for i in range(1, 6) %}
+                            <option value="{{ i }}" {% if user_rating == i %}selected{% endif %}>{{ i }} star{{ "s" if i != 1 else "" }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" style="padding: 8px 20px; background: linear-gradient(45deg, #48bb78, #38a169); color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: all 0.3s ease;">Submit Rating</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="content">{{ content }}</div>
+
+        <div class="actions">
+            <a href="{{ url_for('download_file', filename=filename) }}" class="btn btn-primary" download>📥 Download File</a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">← Back to Notes</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .main-wrapper {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .sidebar {
+            width: 200px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        .sidebar h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        .category-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .category-item {
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+        }
+        .category-item:hover {
+            background: #f0f4f8;
+            border-left-color: #667eea;
+        }
+        .category-item.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-left-color: #667eea;
+        }
+        .content {
+            flex: 1;
+        }
+        .container {
+            width: min(100%, 1200px);
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .nav h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+        .nav .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .nav a:hover {
+            color: #5a67d8;
+        }
+        .flash-message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .flash-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        .flash-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+        .search-form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        input[type="text"] {
+            padding: 12px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px 0 0 25px;
+            font-size: 16px;
+            width: 300px;
+            transition: all 0.3s ease;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+        button {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 0 25px 25px 0;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .upload-link {
+            display: inline-block;
+            margin-bottom: 30px;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        .upload-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        .card h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        .card p {
+            color: #718096;
+            margin-bottom: 15px;
+        }
+        .card a {
+            display: inline-block;
+            padding: 8px 16px;
+            background: linear-gradient(45deg, #ed8936, #dd6b20);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .card .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .card .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        .card .btn-view {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+        }
+        .card .btn-view:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(72, 187, 120, 0.3);
+        }
+        .card .btn-download {
+            background: linear-gradient(45deg, #ed8936, #dd6b20);
+            color: white;
+        }
+        .card .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(237, 137, 54, 0.3);
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .main-wrapper {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .sidebar {
+                width: 100%;
+                position: relative;
+                top: 0;
+            }
+            .category-list {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .category-item {
+                flex: 0 1 calc(50% - 5px);
+                text-align: center;
+                padding: 8px 12px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .search-form {
+                flex-direction: column;
+                align-items: center;
+            }
+            input[type="text"] {
+                width: 100%;
+                border-radius: 25px;
+                margin-bottom: 10px;
+            }
+            button {
+                border-radius: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="nav">
+            <h1>📚 Notes Platform</h1>
+            <div class="user-info">
+                <span>Welcome, {{ current_user.username }}!</span>
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('admin_panel') }}">Admin Panel</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
+        </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ 'success' if category == 'success' else 'error' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="main-wrapper">
+            <div class="sidebar">
+                <h3>📑 Categories</h3>
+                <div class="category-list">
+                    <a href="{{ url_for('index') }}" class="category-item {% if current_category == 'All' %}active{% endif %}">
+                        📋 All Notes
+                    </a>
+                    <a href="{{ url_for('index', category='Coding') }}" class="category-item {% if current_category == 'Coding' %}active{% endif %}">
+                        💻 Coding
+                    </a>
+                    <a href="{{ url_for('index', category='General') }}" class="category-item {% if current_category == 'General' %}active{% endif %}">
+                        📄 Lab Manual
+                    </a>
+                    <a href="{{ url_for('index', category='Other') }}" class="category-item {% if current_category == 'Other' %}active{% endif %}">
+                        📌 Other
+                    </a>
+                </div>
+            </div>
+
+            <div class="content">
+
+        <form method="GET" class="search-form">
+            <input type="text" name="q" placeholder="Search subject...">
+            <button type="submit">🔍 Search</button>
+        </form>
+
+        <a href="/upload" class="upload-link">➕ Upload New Notes</a>
+
+        <div class="notes-grid">
+            {% for data in notes_data %}
+            {% set note = data.note %}
+            <div class="card">
+                <h3>{{ note.subject }}
+                    {% if note.is_global %}
+                        <span style="font-size: 0.8rem; color: #38a169; font-weight: 700; margin-left: 8px;">(Global)</span>
+                    {% endif %}
+                </h3>
+                <p style="font-size: 0.85rem; color: #9f7aea; margin-bottom: 5px;"><strong>📑 Category:</strong> {{ note.category }}</p>
+                <p>Semester: {{ note.semester }}</p>
+                {% if note.user_id != current_user.id %}
+                    <p style="font-size: 0.85rem; color: #718096; margin-top: 0;">Uploaded by: {{ note.user.username }}</p>
+                {% endif %}
+                
+                <!-- Rating Display -->
+                <div class="rating-section" style="margin: 10px 0;">
+                    <div class="rating-display">
+                        <span class="stars">
+                            {% for i in range(1, 6) %}
+                                {% if data.avg_rating >= i %}
+                                    ⭐
+                                {% elif data.avg_rating >= i - 0.5 %}
+                                    ⭐
+                                {% else %}
+                                    ☆
+                                {% endif %}
+                            {% endfor %}
+                        </span>
+                        <span class="rating-text" style="margin-left: 8px; font-size: 0.9rem; color: #666;">
+                            {{ "%.1f"|format(data.avg_rating) }} ({{ data.rating_count }} rating{{ "s" if data.rating_count != 1 else "" }})
+                        </span>
+                    </div>
+                    
+                    <!-- Rating Form -->
+                    <form method="POST" action="{{ url_for('rate_note', note_id=note.id) }}" style="margin-top: 8px;">
+                        <div class="rating-input">
+                            <label style="font-size: 0.85rem; color: #666; margin-right: 8px;">Rate this note:</label>
+                            <select name="rating" style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem;">
+                                <option value="">Select rating</option>
+                                {% for i in range(1, 6) %}
+                                    <option value="{{ i }}" {% if data.user_rating == i %}selected{% endif %}>{{ i }} star{{ "s" if i != 1 else "" }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn-rate" style="margin-left: 8px; padding: 4px 12px; background: #48bb78; color: white; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;">Rate</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="actions">
+                    {% if note.filename.lower().endswith('.txt') %}
+                    <a href="{{ url_for('view_file', filename=note.filename) }}" class="btn btn-view">👁️ View</a>
+                    {% endif %}
+                    <a href="{{ url_for('download_file', filename=note.filename) }}" class="btn btn-download" download>📥 Download</a>
+                    {% if current_user.is_admin or note.user_id == current_user.id %}
+                    <form method="POST" action="{{ url_for('delete_note', note_id=note.id) }}" style="display:inline; margin-left:8px;" onsubmit="return confirm('Really delete this note?');">
+                        <button type="submit" class="btn btn-danger">🗑️ Delete</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+        </div>
+    </div>
+</body>
+</html>
