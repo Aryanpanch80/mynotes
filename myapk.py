@@ -7,7 +7,10 @@ from wtforms.validators import DataRequired, Length, EqualTo
 from sqlalchemy import or_, and_, text
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+
 import os
+
+
 
 app = Flask(__name__, template_folder="templates")
 app.config['SECRET_KEY'] = 'your-secret-key-here-change-in-production'
@@ -74,6 +77,8 @@ class UploadForm(FlaskForm):
     file = FileField('File', validators=[DataRequired()])
     is_global = BooleanField('Share globally (all users can see)', default=False)
     submit = SubmitField('Upload')
+
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 @app.route("/")
 @login_required
